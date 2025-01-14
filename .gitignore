@@ -4,3 +4,4 @@ dist
 build
 **/meta.json
 bin/user_files/
+**/__pycache__/
