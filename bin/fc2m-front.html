@@ -442,7 +442,7 @@ var fc2
             let nxt;
             if (this.current?.classList.contains('hide'))
                 nxt = this.current;
-            if (fwd && this.current === els[els.length - 1])
+            else if (fwd && this.current === els[els.length - 1])
                 nxt = this.cfg.iteration.loop ? els[0] : this.current;
             else if (!fwd && this.current === els[0])
                 nxt = this.cfg.iteration.loop ? els[els.length - 1] : this.current;
@@ -492,6 +492,12 @@ var fc2
                 return false;
             }
         }
+        line_height(style) {
+            this.log('    line_height');
+            return parseInt(style.height) + parseInt(style.marginTop) + parseInt(style.marginBottom)
+                || parseInt(style.lineHeight)
+                || 20;
+        }
         scroll_to(opts) {
             this.log('scroll_to');
             if (!this.cfg.front) {
@@ -512,16 +518,10 @@ var fc2
                 last = active[active.length - 1];
             }
             const offset = this.viewport.getBoundingClientRect().top;
-            const line_height = (style) => {
-                this.log('    line_height');
-                return parseInt(style.height) + parseInt(style.marginTop) + parseInt(style.marginBottom)
-                    || parseInt(style.lineHeight)
-                    || 20;
-            };
             const vp_height = this.viewport.clientHeight;
-            const cloze_top = (first.getBoundingClientRect().top - offset) - line_height(window.getComputedStyle(first?.previousElementSibling || first, ':before')) + 3;
+            const cloze_top = (first.getBoundingClientRect().top - offset) - this.line_height(window.getComputedStyle(first?.previousElementSibling || first, ':before')) + 3;
             let top;
-            const bottom = (last.getBoundingClientRect().bottom - offset) + line_height(window.getComputedStyle(last?.nextElementSibling || last, ':after')) + 3;
+            const bottom = (last.getBoundingClientRect().bottom - offset) + this.line_height(window.getComputedStyle(last?.nextElementSibling || last, ':after')) + 3;
             let y = 0;
             if (opts.scroll?.slice(0, 7) === 'context') {
                 top = 0;
@@ -615,6 +615,16 @@ var fc2
                     this.toggle_all(true);
                 this.search.focus();
             }
+            else if (evt.key === 'ArrowUp') {
+                this.viewport.scrollTop -= this.line_height(window.getComputedStyle(this.current?.previousElementSibling || this.current, ':before'));
+            }
+            else if (evt.key === 'ArrowDown') {
+                this.viewport.scrollTop += this.line_height(window.getComputedStyle(this.current?.previousElementSibling || this.current, ':before'));
+            }
+            else if (evt.key === 'PageUp')
+                this.viewport.scrollTop -= this.viewport.clientHeight;
+            else if (evt.key === 'PageDown')
+                this.viewport.scrollTop += this.viewport.clientHeight;
             else
                 return;
             evt.stopPropagation();

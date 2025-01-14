@@ -194,7 +194,7 @@ export class FC2 {
         if (el.dataset.cloze?.endsWith(this.cfg.expose.char)) {
           el.dataset.cloze = el.dataset.cloze.slice(0, -1)
           return true
-        }          
+        }
         else if (el.lastChild?.data?.endsWith(this.cfg.expose.char)) {
           el.lastChild.data = el.lastChild.data.slice(0, -1)
           return true
@@ -230,7 +230,7 @@ export class FC2 {
     }
   }
 
-  /** Hide cloze (and save cloze content PRN) 
+  /** Hide cloze (and save cloze content PRN)
    * Also, in case of nested inactive clozes: they were not parsed initially (as they were
    * in dataset.cloze) and therefore needs setting hint to `''`
    */
@@ -247,17 +247,19 @@ export class FC2 {
   /** Iterate forward or backward, start by showing current if hidden */
   iter(fwd: boolean) {
     this.log('iter')
-    const els = this.content.querySelectorAll('.cloze');
+    const els = this.content.querySelectorAll('.cloze')
+
     let nxt
     if (this.current?.classList.contains('hide'))
       nxt = this.current
-    if (fwd && this.current === els[els.length - 1])
+    else if (fwd && this.current === els[els.length - 1])
       nxt = this.cfg.iteration.loop ? els[0] : this.current
     else if (!fwd && this.current === els[0])
       nxt = this.cfg.iteration.loop ? els[els.length - 1] : this.current
     for (let i = 0; !nxt && i < els.length; i++) {
       if (els[i] === this.current) nxt = els[i + (fwd ? 1 : -1)]
     }
+
     if (nxt !== this.current && this.cfg.iteration.hide)
       this.hide(this.current)
     this.show(this.current = nxt)
@@ -305,6 +307,15 @@ export class FC2 {
     }
   }
 
+  /** Calculate line height from style */
+  line_height(style: CSSStyleDeclaration) {
+    this.log('    line_height')
+    return parseInt(style.height) + parseInt(style.marginTop) + parseInt(style.marginBottom)
+      || parseInt(style.lineHeight)
+      || 20
+  }
+
+
   /** Scroll to active clozes or specific cloze */
   scroll_to(opts: {scroll: string, cloze?: HTMLElement, vp_pos?: number}) {
   this.log('scroll_to')
@@ -328,18 +339,12 @@ export class FC2 {
       last = active[active.length - 1]
     }
     const offset = this.viewport.getBoundingClientRect().top
-    const line_height = (style: CSSStyleDeclaration) => {
-      this.log('    line_height')
-      return parseInt(style.height) + parseInt(style.marginTop) + parseInt(style.marginBottom)
-        || parseInt(style.lineHeight)
-        || 20
-    }
     const vp_height = this.viewport.clientHeight
-    const cloze_top = (first.getBoundingClientRect().top - offset) - line_height(
+    const cloze_top = (first.getBoundingClientRect().top - offset) - this.line_height(
       window.getComputedStyle(first?.previousElementSibling || first, ':before')
     ) + 3 // top of first active cloze
     let top // top of area to visualize, section or first active cloze
-    const bottom = (last.getBoundingClientRect().bottom - offset) + line_height(
+    const bottom = (last.getBoundingClientRect().bottom - offset) + this.line_height(
       window.getComputedStyle(last?.nextElementSibling || last, ':after')
     ) + 3 // bottom of area to visualize, last active cloze
     let y = 0 // offset to scroll, not absolute y coordinate
@@ -437,7 +442,17 @@ export class FC2 {
     else if (evt.key === 'f' && evt.ctrlKey && !evt.metaKey) {
       if (this.search.hidden) this.toggle_all(true)
       this.search.focus()
+    } else if (evt.key === 'ArrowUp') {
+      this.viewport.scrollTop -= this.line_height(
+        window.getComputedStyle(this.current?.previousElementSibling || this.current, ':before')
+      )
+    } else if (evt.key === 'ArrowDown') {
+      this.viewport.scrollTop += this.line_height(
+        window.getComputedStyle(this.current?.previousElementSibling || this.current, ':before')
+      )
     }
+    else if (evt.key === 'PageUp') this.viewport.scrollTop -= this.viewport.clientHeight
+    else if (evt.key === 'PageDown') this.viewport.scrollTop += this.viewport.clientHeight
     else return
 
     // All non-handled events returned above

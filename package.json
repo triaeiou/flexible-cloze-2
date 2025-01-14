@@ -7,7 +7,7 @@
     "copy-to-clipboard": "^3.3.3",
     "cross-env": "^7.0.3",
     "fs-extra": "^11.1.1",
-    "rollup": "^3.20.2",
+    "rollup": "^3.29.4",
     "rollup-plugin-copy-merge": "^1.0.0",
     "shx": "^0.3.4",
     "tslib": "^2.5.0",
@@ -22,5 +22,8 @@
     "build": "npm run build-template && npm run build-py && npm run build-cfg && npm run build-doc",
     "prepack": "shx rm -rf ./dist/* && shx cp -r ./bin ./dist/ && shx rm -rf ./dist/bin/meta.json ./dist/bin/__pycache__ ./dist/bin/*.bak ./dist/bin/user_files",
     "pack": "npm run build && npm run prepack && zip-build \"./dist/bin\" \"./dist\" -o -t \"update.zip\" && cross-env-shell pandoc -t $CODEPATH/Anki/addons/pandoc-anki-addon-writer/anki-addon.lua ./README.md -o ./dist/update.txt"
+  },
+  "dependencies": {
+    "@types/node": "^22.10.6"
   }
 }
